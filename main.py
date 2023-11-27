@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
-from config_bd import SessionLocal  # Importando a configuração do banco de dados
+from config_bd import SessionLocal, text  # Importando a configuração do banco de dados
 import json
 from datetime import datetime
 
@@ -26,11 +26,16 @@ def read_data():
     query = open("liberacao.sql", "r").read()
     try:
         with SessionLocal() as session:
-            cursor = session.execute(query)
+            # Use text() para a consulta SQL
+            cursor = session.execute(text(query))
             columns = [col[0] for col in cursor.cursor.description]
             results = [dict(zip(columns, row)) for row in cursor.fetchall()]
             return Response(content=json.dumps(results, default=convert_datetime), media_type="application/json")
     except SQLAlchemyError as e:
+        print(f"Erro ao acessar o banco de dados: {e}")
         return Response(content=json.dumps({"error": "Erro ao acessar o banco de dados"}), media_type="application/json")
 
+
 # Execute o servidor usando: uvicorn main:app --reload --host 0.0.0.0 --port 8001
+# uvicorn main:app --host 0.0.0.0 --port 8001
+
