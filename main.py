@@ -74,5 +74,36 @@ def read_pcprest_data():
     query = open("pcprest.sql", "r").read()
     return Response(content=json.dumps(cached_query(query, timedelta(seconds=60)), default=convert_datetime), media_type="application/json")
 
+# Endpoint para a rota "/pcprest"
+@app.get("/pago")
+def read_pcprest_data():
+    """
+    Endpoint para obter dados do pago.
+    :return: Dados do pago em formato JSON.
+    """
+    query = open("pago.sql", "r").read()
+    return Response(content=json.dumps(cached_query(query, timedelta(seconds=60)), default=convert_datetime), media_type="application/json")
+
+# Endpoint para a rota "/inadimplente"
+@app.get("/inadimplente")
+def read_pcprest_data():
+    """
+    Endpoint para obter dados do inadimplente.
+    :return: Dados do inadimplente em formato JSON.
+    """
+    query = open("inadimplente.sql", "r").read()
+    return Response(content=json.dumps(cached_query(query, timedelta(seconds=60)), default=convert_datetime), media_type="application/json")
+
+
+# Endpoint para a rota "/receber"
+@app.get("/receber")
+def read_pcprest_data():
+    """
+    Endpoint para obter dados do receber.
+    :return: Dados do receber em formato JSON.
+    """
+    query = open("receber.sql", "r").read()
+    return Response(content=json.dumps(cached_query(query, timedelta(seconds=60)), default=convert_datetime), media_type="application/json")
+
 # Comando para execução do servidor (normalmente colocado fora do arquivo main.py)
 # uvicorn main:app --reload --host 0.0.0.0 --port 8001
