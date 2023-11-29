@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # Configuração do Middleware GZip para compressão das respostas
-app.add_middleware(GZipMiddleware, minimum_size=1000)
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Função de conversão personalizada para JSON
 def convert_datetime(obj):
