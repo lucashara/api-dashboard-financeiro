@@ -72,5 +72,6 @@ create_data_endpoint("/pcprest", "pcprest.sql")
 create_data_endpoint("/pago", "pago.sql")
 create_data_endpoint("/inadimplente", "inadimplente.sql")
 create_data_endpoint("/receber", "receber.sql")
+create_data_endpoint("/bonificado", "bonificado.sql")
 
 # uvicorn main:app --reload --host 0.0.0.0 --port 8001
