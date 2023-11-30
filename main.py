@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from sqlalchemy.exc import SQLAlchemyError
@@ -23,11 +23,6 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Função de conversão personalizada para JSON
 def convert_datetime(obj):
-    """
-    Converte objetos datetime e Decimal para serem serializáveis em JSON.
-    :param obj: Objeto a ser convertido.
-    :return: Representação string do objeto.
-    """
     if isinstance(obj, datetime):
         return obj.isoformat()
     elif isinstance(obj, Decimal):
@@ -37,73 +32,45 @@ def convert_datetime(obj):
 # Cache para armazenar as consultas e seus tempos
 cache = {}
 
+# Função para validar formato de data
+def validate_date(date_str):
+    try:
+        return datetime.strptime(date_str, '%d-%m-%Y')
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato de data inválido. Use DD-MM-AAAA.")
+
 # Função de cache para consultas SQL
-def cached_query(query: str, expire_delta: timedelta):
-    """
-    Executa a consulta SQL e armazena o resultado no cache.
-    :param query: Consulta SQL como string.
-    :param expire_delta: Tempo para expiração do cache.
-    :return: Resultado da consulta.
-    """
+def cached_query(query: str, datainicial: str, datafinal: str, expire_delta: timedelta):
+    # Validação das datas
+    data_ini = validate_date(datainicial)
+    data_fin = validate_date(datafinal)
+
+    if data_ini > data_fin:
+        raise HTTPException(status_code=400, detail="Data inicial deve ser anterior ou igual à data final.")
+
     now = datetime.now()
-    if query not in cache or (now - cache[query]['time']).total_seconds() > expire_delta.total_seconds():
+    cache_key = f"{query}-{datainicial}-{datafinal}"
+    if cache_key not in cache or (now - cache[cache_key]['time']).total_seconds() > expire_delta.total_seconds():
         with SessionLocal() as session:
-            cursor = session.execute(text(query))
+            cursor = session.execute(text(query), {"DATAINICIAL": datainicial, "DATAFINAL": datafinal})
             columns = [col[0] for col in cursor.cursor.description]
             results = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            cache[query] = {'time': now, 'data': results}
-    return cache[query]['data']
+            cache[cache_key] = {'time': now, 'data': results}
+    return cache[cache_key]['data']
 
-# Endpoint para a rota "/liberacao"
-@app.get("/liberacao")
-def read_liberacao_data():
-    """
-    Endpoint para obter dados de liberação.
-    :return: Dados de liberação em formato JSON.
-    """
-    query = open("liberacao.sql", "r").read()
-    return Response(content=json.dumps(cached_query(query, timedelta(seconds=60)), default=convert_datetime), media_type="application/json")
+# Endpoint genérico com parâmetros de data
+def create_data_endpoint(path: str, query_file: str):
+    @app.get(path)
+    def endpoint(datainicial: str = Query(...), datafinal: str = Query(...)):
+        query = open(query_file, "r").read()
+        return Response(content=json.dumps(cached_query(query, datainicial, datafinal, timedelta(seconds=60)), default=convert_datetime), media_type="application/json")
+    return endpoint
 
-# Endpoint para a rota "/pcprest"
-@app.get("/pcprest")
-def read_pcprest_data():
-    """
-    Endpoint para obter dados do PCPrest.
-    :return: Dados do PCPrest em formato JSON.
-    """
-    query = open("pcprest.sql", "r").read()
-    return Response(content=json.dumps(cached_query(query, timedelta(seconds=60)), default=convert_datetime), media_type="application/json")
+# Criando endpoints
+create_data_endpoint("/liberacao", "liberacao.sql")
+create_data_endpoint("/pcprest", "pcprest.sql")
+create_data_endpoint("/pago", "pago.sql")
+create_data_endpoint("/inadimplente", "inadimplente.sql")
+create_data_endpoint("/receber", "receber.sql")
 
-# Endpoint para a rota "/pcprest"
-@app.get("/pago")
-def read_pcprest_data():
-    """
-    Endpoint para obter dados do pago.
-    :return: Dados do pago em formato JSON.
-    """
-    query = open("pago.sql", "r").read()
-    return Response(content=json.dumps(cached_query(query, timedelta(seconds=60)), default=convert_datetime), media_type="application/json")
-
-# Endpoint para a rota "/inadimplente"
-@app.get("/inadimplente")
-def read_pcprest_data():
-    """
-    Endpoint para obter dados do inadimplente.
-    :return: Dados do inadimplente em formato JSON.
-    """
-    query = open("inadimplente.sql", "r").read()
-    return Response(content=json.dumps(cached_query(query, timedelta(seconds=60)), default=convert_datetime), media_type="application/json")
-
-
-# Endpoint para a rota "/receber"
-@app.get("/receber")
-def read_pcprest_data():
-    """
-    Endpoint para obter dados do receber.
-    :return: Dados do receber em formato JSON.
-    """
-    query = open("receber.sql", "r").read()
-    return Response(content=json.dumps(cached_query(query, timedelta(seconds=60)), default=convert_datetime), media_type="application/json")
-
-# Comando para execução do servidor (normalmente colocado fora do arquivo main.py)
 # uvicorn main:app --reload --host 0.0.0.0 --port 8001
