@@ -79,8 +79,7 @@ create_data_endpoint("/pedidos", "pedidos.sql")
 
 # https://sga.grupobrf1.com:8445/
 
-# https://sga.grupobrf1.com:4444/pago?datainicial=28-12-2023&datafinal=28-12-2023
-# https://sga.grupobrf1.com:4444/pago?datainicial=28-12-2023&datafinal=28-12-2023
+# https://sga.grupobrf1.com:4444/pedidos?datainicial=28-12-2023&datafinal=28-12-2023
 # https://sga.grupobrf1.com:4444/liberacao?datainicial=28-12-2023&datafinal=28-12-2023
 # https://sga.grupobrf1.com:4444/pago?datainicial=28-12-2023&datafinal=28-12-2023
 # https://sga.grupobrf1.com:4444/inadimplente?datainicial=28-12-2023&datafinal=28-12-2023
