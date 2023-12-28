@@ -73,5 +73,16 @@ create_data_endpoint("/pago", "pago.sql")
 create_data_endpoint("/inadimplente", "inadimplente.sql")
 create_data_endpoint("/receber", "receber.sql")
 create_data_endpoint("/bonificado", "bonificado.sql")
+create_data_endpoint("/pedidos", "pedidos.sql")
 
 # uvicorn main:app --reload --host 0.0.0.0 --port 8001
+
+# https://sga.grupobrf1.com:8445/
+
+# https://sga.grupobrf1.com:4444/pago?datainicial=28-12-2023&datafinal=28-12-2023
+# https://sga.grupobrf1.com:4444/pago?datainicial=28-12-2023&datafinal=28-12-2023
+# https://sga.grupobrf1.com:4444/liberacao?datainicial=28-12-2023&datafinal=28-12-2023
+# https://sga.grupobrf1.com:4444/pago?datainicial=28-12-2023&datafinal=28-12-2023
+# https://sga.grupobrf1.com:4444/inadimplente?datainicial=28-12-2023&datafinal=28-12-2023
+# https://sga.grupobrf1.com:4444/receber?datainicial=28-12-2023&datafinal=28-12-2023
+# https://sga.grupobrf1.com:4444/pcprest?datainicial=28-12-2023&datafinal=28-12-2023
